@@ -4,51 +4,393 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}Auditor SPED{% endblock %}</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,{% filter urlencode %}<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%230F2B46'/><path d='M8 22V10l8 4-8 4v4zm8-4l8-4v8l-8-4z' fill='%2338BDF8'/></svg>{% endfilter %}">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
   <style>
+    /* ================================================================
+       AUDITOR SPED - Design System
+       ================================================================ */
+
     :root {
-      --azul: #1a3a5c;
-      --azul-claro: #2563eb;
-      --verde: #16a34a;
-      --amarelo: #ca8a04;
-      --vermelho: #dc2626;
+      /* Paleta principal */
+      --navy-900: #0B1D33;
+      --navy-800: #0F2B46;
+      --navy-700: #14375A;
+      --navy-600: #1A4872;
+      --navy-500: #1E5A8A;
+
+      /* Accent */
+      --accent-500: #38BDF8;
+      --accent-400: #5CCBFA;
+      --accent-300: #7DD3FC;
+
+      /* Status */
+      --success-500: #10B981;
+      --success-50: #ECFDF5;
+      --warning-500: #F59E0B;
+      --warning-50: #FFFBEB;
+      --danger-500: #EF4444;
+      --danger-50: #FEF2F2;
+
+      /* Neutros */
+      --gray-50: #F8FAFC;
+      --gray-100: #F1F5F9;
+      --gray-200: #E2E8F0;
+      --gray-300: #CBD5E1;
+      --gray-400: #94A3B8;
+      --gray-500: #64748B;
+      --gray-600: #475569;
+      --gray-700: #334155;
+      --gray-800: #1E293B;
+      --gray-900: #0F172A;
+
+      /* Tipografia */
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+      /* Shadows */
+      --shadow-sm: 0 1px 2px rgba(0,0,0,.05);
+      --shadow-md: 0 4px 6px -1px rgba(0,0,0,.07), 0 2px 4px -2px rgba(0,0,0,.05);
+      --shadow-lg: 0 10px 15px -3px rgba(0,0,0,.08), 0 4px 6px -4px rgba(0,0,0,.04);
+      --shadow-xl: 0 20px 25px -5px rgba(0,0,0,.08), 0 8px 10px -6px rgba(0,0,0,.04);
+
+      /* Radius */
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+      --radius-xl: 20px;
     }
-    body { background: #f1f5f9; color: #1e293b; font-family: 'Segoe UI', system-ui, sans-serif; }
-    .navbar { background: var(--azul) !important; }
-    .navbar-brand { font-weight: 700; letter-spacing: .5px; }
-    .card { border: none; box-shadow: 0 1px 4px rgba(0,0,0,.10); border-radius: 10px; }
-    .card-header { border-radius: 10px 10px 0 0 !important; font-weight: 600; }
-    .badge-alta    { background: var(--vermelho); }
-    .badge-media   { background: var(--amarelo);  }
-    .badge-baixa   { background: var(--verde);    }
-    .badge-alta, .badge-media, .badge-baixa { color: #fff; font-size: .75rem; padding: .3em .6em; border-radius: 4px; }
-    .valor-destaque { font-size: 1.6rem; font-weight: 700; color: var(--azul); }
-    footer { font-size: .8rem; color: #64748b; text-align: center; padding: 1.5rem 0; }
-    .drop-zone {
-      border: 2px dashed #94a3b8; border-radius: 10px; background: #f8fafc;
-      transition: border-color .2s, background .2s; cursor: pointer; padding: 2rem;
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--gray-50);
+      color: var(--gray-800);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
     }
-    .drop-zone:hover, .drop-zone.dragover { border-color: var(--azul-claro); background: #eff6ff; }
-    .drop-zone input[type=file] { display: none; }
-    .drop-zone label { cursor: pointer; font-weight: 500; color: var(--azul-claro); }
-    .file-name { font-size: .85rem; color: #475569; margin-top: .4rem; }
+
+    /* ---- NAVBAR ---- */
+    .as-navbar {
+      background: linear-gradient(135deg, var(--navy-900) 0%, var(--navy-800) 100%);
+      padding: 0 2rem;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 1px 3px rgba(0,0,0,.2);
+    }
+    .as-navbar-inner {
+      max-width: 1280px;
+      width: 100%;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .as-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: #fff;
+    }
+    .as-brand-icon {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, var(--accent-500), var(--accent-300));
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--navy-900);
+    }
+    .as-brand-text {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.2;
+    }
+    .as-brand-name {
+      font-size: 1.05rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+    .as-brand-sub {
+      font-size: .7rem;
+      color: var(--accent-300);
+      font-weight: 400;
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
+    }
+    .as-navbar-badge {
+      background: rgba(56,189,248,.12);
+      color: var(--accent-300);
+      font-size: .7rem;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 20px;
+      border: 1px solid rgba(56,189,248,.2);
+      letter-spacing: 0.3px;
+    }
+
+    /* ---- CONTAINER ---- */
+    .as-container {
+      max-width: 1280px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 2rem;
+      flex: 1;
+    }
+
+    /* ---- CARDS ---- */
+    .as-card {
+      background: #fff;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--gray-200);
+      overflow: hidden;
+      transition: box-shadow .2s;
+    }
+    .as-card:hover { box-shadow: var(--shadow-lg); }
+    .as-card-header {
+      padding: 1rem 1.5rem;
+      font-weight: 600;
+      font-size: .9rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid var(--gray-200);
+    }
+    .as-card-header-dark {
+      background: linear-gradient(135deg, var(--navy-800), var(--navy-700));
+      color: #fff;
+      border-bottom: none;
+    }
+    .as-card-body { padding: 1.5rem; }
+
+    /* ---- ALERTS ---- */
+    .as-alert {
+      padding: 1rem 1.25rem;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 1.5rem;
+      font-size: .9rem;
+    }
+    .as-alert-error {
+      background: var(--danger-50);
+      border: 1px solid #FECACA;
+      color: var(--danger-500);
+    }
+    .as-alert-success {
+      background: var(--success-50);
+      border: 1px solid #A7F3D0;
+      color: #065F46;
+    }
+    .as-alert-close {
+      margin-left: auto;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1.1rem;
+      color: inherit;
+      opacity: .6;
+    }
+    .as-alert-close:hover { opacity: 1; }
+
+    /* ---- BADGES ---- */
+    .as-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: .72rem;
+      font-weight: 600;
+      letter-spacing: .3px;
+      text-transform: uppercase;
+    }
+    .as-badge-alta { background: var(--danger-50); color: var(--danger-500); border: 1px solid #FECACA; }
+    .as-badge-media { background: var(--warning-50); color: #92400E; border: 1px solid #FDE68A; }
+    .as-badge-baixa { background: var(--success-50); color: #065F46; border: 1px solid #A7F3D0; }
+    .as-badge-rule {
+      background: var(--navy-800);
+      color: var(--accent-300);
+      font-size: .72rem;
+      padding: 3px 10px;
+      border-radius: 6px;
+      font-weight: 700;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+    }
+
+    /* ---- BUTTONS ---- */
+    .as-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border-radius: var(--radius-sm);
+      font-family: var(--font-sans);
+      font-weight: 600;
+      font-size: .88rem;
+      border: none;
+      cursor: pointer;
+      transition: all .15s;
+      text-decoration: none;
+    }
+    .as-btn-primary {
+      background: linear-gradient(135deg, var(--navy-800), var(--navy-700));
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(15,43,70,.3);
+    }
+    .as-btn-primary:hover {
+      background: linear-gradient(135deg, var(--navy-700), var(--navy-600));
+      box-shadow: 0 4px 12px rgba(15,43,70,.4);
+      transform: translateY(-1px);
+      color: #fff;
+    }
+    .as-btn-primary:disabled {
+      opacity: .6;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .as-btn-accent {
+      background: linear-gradient(135deg, var(--accent-500), #0EA5E9);
+      color: #fff;
+    }
+    .as-btn-accent:hover { opacity: .9; color: #fff; }
+    .as-btn-outline {
+      background: #fff;
+      color: var(--gray-600);
+      border: 1px solid var(--gray-300);
+    }
+    .as-btn-outline:hover { border-color: var(--gray-400); color: var(--gray-800); }
+    .as-btn-success {
+      background: var(--success-500);
+      color: #fff;
+    }
+    .as-btn-success:hover { opacity: .9; color: #fff; }
+    .as-btn-danger {
+      background: var(--danger-500);
+      color: #fff;
+    }
+    .as-btn-danger:hover { opacity: .9; color: #fff; }
+    .as-btn-lg { padding: 14px 28px; font-size: .95rem; border-radius: var(--radius-md); }
+
+    /* ---- TABLES ---- */
+    .as-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .85rem;
+    }
+    .as-table thead th {
+      background: var(--gray-50);
+      padding: 10px 14px;
+      text-align: left;
+      font-weight: 600;
+      color: var(--gray-600);
+      font-size: .78rem;
+      text-transform: uppercase;
+      letter-spacing: .4px;
+      border-bottom: 2px solid var(--gray-200);
+    }
+    .as-table tbody td {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--gray-100);
+      vertical-align: middle;
+    }
+    .as-table tbody tr:hover { background: var(--gray-50); }
+    .as-table tbody tr:last-child td { border-bottom: none; }
+
+    /* ---- FOOTER ---- */
+    .as-footer {
+      text-align: center;
+      padding: 1.5rem 2rem;
+      font-size: .75rem;
+      color: var(--gray-400);
+      border-top: 1px solid var(--gray-200);
+      background: #fff;
+    }
+    .as-footer-accent { color: var(--accent-500); font-weight: 600; }
+
+    /* ---- SPINNER ---- */
+    .as-spinner {
+      width: 18px;
+      height: 18px;
+      border: 2px solid rgba(255,255,255,.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: as-spin .6s linear infinite;
+      display: inline-block;
+    }
+    @keyframes as-spin { to { transform: rotate(360deg); } }
+
+    /* ---- UTILITIES ---- */
+    .as-text-muted { color: var(--gray-500); }
+    .as-text-sm { font-size: .85rem; }
+    .as-text-xs { font-size: .75rem; }
+    .as-text-mono { font-family: 'SF Mono', 'Fira Code', Consolas, monospace; }
+    .as-text-right { text-align: right; }
+    .as-text-center { text-align: center; }
+    .as-mt-1 { margin-top: .5rem; }
+    .as-mt-2 { margin-top: 1rem; }
+    .as-mt-3 { margin-top: 1.5rem; }
+    .as-mb-1 { margin-bottom: .5rem; }
+    .as-mb-2 { margin-bottom: 1rem; }
+    .as-mb-3 { margin-bottom: 1.5rem; }
+    .as-gap-2 { gap: 1rem; }
+    .as-flex { display: flex; }
+    .as-flex-wrap { flex-wrap: wrap; }
+    .as-items-center { align-items: center; }
+    .as-justify-between { justify-content: space-between; }
+    .as-grid { display: grid; }
+    .as-hidden { display: none !important; }
+
+    /* ---- RESPONSIVE ---- */
+    @media (max-width: 768px) {
+      .as-container { padding: 1rem; }
+      .as-navbar { padding: 0 1rem; }
+      .as-brand-sub { display: none; }
+      .as-navbar-badge { display: none; }
+    }
   </style>
+  {% block head %}{% endblock %}
 </head>
 <body>
-<nav class="navbar navbar-dark navbar-expand-lg">
-  <div class="container">
-    <a class="navbar-brand" href="/"><i class="bi bi-shield-check me-2"></i>Auditor SPED</a>
-    <span class="text-white-50 small d-none d-md-inline">Auditoria Tributária · Lucro Real</span>
+
+<!-- Navbar -->
+<nav class="as-navbar">
+  <div class="as-navbar-inner">
+    <a href="/" class="as-brand">
+      <div class="as-brand-icon">AS</div>
+      <div class="as-brand-text">
+        <span class="as-brand-name">Auditor SPED</span>
+        <span class="as-brand-sub">Auditoria Tributaria | Lucro Real</span>
+      </div>
+    </a>
+    <span class="as-navbar-badge">
+      <i class="bi bi-shield-check" style="margin-right:4px"></i>
+      10 Regras Ativas
+    </span>
   </div>
 </nav>
 
-<div class="container py-4">
+<!-- Content -->
+<div class="as-container">
   {% with messages = get_flashed_messages(with_categories=true) %}
     {% for cat, msg in messages %}
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-      <i class="bi bi-exclamation-triangle me-2"></i>{{ msg }}
-      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    <div class="as-alert as-alert-error">
+      <i class="bi bi-exclamation-triangle"></i>
+      <span>{{ msg }}</span>
+      <button class="as-alert-close" onclick="this.parentElement.remove()">&times;</button>
     </div>
     {% endfor %}
   {% endwith %}
@@ -56,8 +398,11 @@
   {% block content %}{% endblock %}
 </div>
 
-<footer>Auditor SPED &mdash; Uso interno &mdash; Dados fiscais confidenciais</footer>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Footer -->
+<footer class="as-footer">
+  <span class="as-footer-accent">Auditor SPED</span> &middot; Dados fiscais confidenciais &middot; Uso exclusivo de consultoria tributaria
+</footer>
+
 {% block scripts %}{% endblock %}
 </body>
 </html>

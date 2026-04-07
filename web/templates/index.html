@@ -1,167 +1,379 @@
 {% extends "base.html" %}
-{% block title %}Auditor SPED — Upload{% endblock %}
+{% block title %}Auditor SPED | Auditoria de Creditos Tributarios{% endblock %}
+
+{% block head %}
+<style>
+  /* ---- HERO ---- */
+  .as-hero {
+    text-align: center;
+    padding: 2.5rem 1rem 1.5rem;
+  }
+  .as-hero-title {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: var(--navy-800);
+    line-height: 1.3;
+    margin-bottom: .5rem;
+  }
+  .as-hero-desc {
+    color: var(--gray-500);
+    font-size: .95rem;
+    max-width: 580px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  /* ---- UPLOAD ZONES ---- */
+  .as-upload-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  .as-upload-zone {
+    border: 2px dashed var(--gray-300);
+    border-radius: var(--radius-lg);
+    background: var(--gray-50);
+    padding: 2rem 1.5rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all .2s;
+    position: relative;
+  }
+  .as-upload-zone:hover,
+  .as-upload-zone.dragover {
+    border-color: var(--accent-500);
+    background: #F0F9FF;
+    box-shadow: 0 0 0 4px rgba(56,189,248,.1);
+  }
+  .as-upload-zone.has-file {
+    border-color: var(--success-500);
+    background: var(--success-50);
+    border-style: solid;
+  }
+  .as-upload-zone input[type=file] { display: none; }
+  .as-upload-icon {
+    font-size: 2rem;
+    color: var(--gray-400);
+    margin-bottom: .5rem;
+    transition: color .2s;
+  }
+  .as-upload-zone:hover .as-upload-icon { color: var(--accent-500); }
+  .as-upload-zone.has-file .as-upload-icon { color: var(--success-500); }
+  .as-upload-label {
+    font-weight: 600;
+    color: var(--gray-700);
+    font-size: .9rem;
+    cursor: pointer;
+  }
+  .as-upload-hint {
+    color: var(--gray-400);
+    font-size: .78rem;
+    margin-top: .25rem;
+  }
+  .as-upload-filename {
+    font-size: .82rem;
+    color: var(--success-500);
+    font-weight: 600;
+    margin-top: .5rem;
+    min-height: 1.2em;
+  }
+  .as-upload-required {
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    background: var(--danger-50);
+    color: var(--danger-500);
+    font-size: .65rem;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 10px;
+    text-transform: uppercase;
+  }
+
+  /* ---- OPTIONS PANEL ---- */
+  .as-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  .as-form-group label {
+    display: block;
+    font-size: .82rem;
+    font-weight: 600;
+    color: var(--gray-700);
+    margin-bottom: 6px;
+  }
+  .as-input {
+    width: 100%;
+    padding: 9px 12px;
+    border: 1px solid var(--gray-300);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-sans);
+    font-size: .88rem;
+    color: var(--gray-800);
+    transition: border-color .15s;
+    background: #fff;
+  }
+  .as-input:focus {
+    outline: none;
+    border-color: var(--accent-500);
+    box-shadow: 0 0 0 3px rgba(56,189,248,.12);
+  }
+  .as-form-hint {
+    font-size: .73rem;
+    color: var(--gray-400);
+    margin-top: 4px;
+  }
+  .as-checkbox-group { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; }
+  .as-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: .85rem;
+    color: var(--gray-700);
+  }
+  .as-checkbox input[type=checkbox] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--navy-700);
+    cursor: pointer;
+  }
+
+  /* ---- RULES TABLE ---- */
+  .as-rules-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: .75rem;
+    padding: 1rem;
+  }
+  .as-rule-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    background: var(--gray-50);
+    border: 1px solid var(--gray-100);
+    transition: background .15s;
+  }
+  .as-rule-item:hover { background: #F0F9FF; border-color: rgba(56,189,248,.2); }
+  .as-rule-code {
+    flex-shrink: 0;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: .72rem;
+    font-weight: 700;
+    background: var(--navy-800);
+    color: var(--accent-300);
+    padding: 3px 8px;
+    border-radius: 4px;
+    margin-top: 1px;
+  }
+  .as-rule-desc {
+    font-size: .82rem;
+    color: var(--gray-600);
+    line-height: 1.4;
+  }
+  .as-rule-tributo {
+    font-size: .7rem;
+    color: var(--gray-400);
+    margin-top: 2px;
+  }
+
+  @media (max-width: 768px) {
+    .as-upload-grid { grid-template-columns: 1fr; }
+    .as-options { grid-template-columns: 1fr; }
+    .as-hero-title { font-size: 1.4rem; }
+  }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-  <div class="col-lg-8">
+<div style="max-width:860px; margin:0 auto;">
 
-    <div class="text-center mb-4">
-      <h2 class="fw-bold" style="color:var(--azul)">Auditoria de Créditos Tributários</h2>
-      <p class="text-muted">Envie os arquivos SPED para identificar créditos não aproveitados (IRPJ, CSLL, PIS/COFINS).</p>
-    </div>
-
-    <div class="card mb-4">
-      <div class="card-header text-white" style="background:var(--azul)">
-        <i class="bi bi-upload me-2"></i>Arquivos SPED
-      </div>
-      <div class="card-body p-4">
-        <form action="/auditar" method="post" enctype="multipart/form-data" id="formAuditoria">
-
-          <div class="row g-3 mb-4">
-            <!-- ECD -->
-            <div class="col-md-4">
-              <label class="form-label fw-semibold">ECD <span class="text-danger">*</span></label>
-              <div class="drop-zone" id="dz-ecd">
-                <input type="file" name="ecd" id="ecd" accept=".txt">
-                <div class="text-center">
-                  <i class="bi bi-file-earmark-text fs-2 text-secondary"></i>
-                  <div class="mt-2"><label for="ecd">Clique ou arraste o arquivo ECD</label></div>
-                  <div class="text-muted small">Escrituração Contábil Digital (.txt)</div>
-                </div>
-                <div class="file-name text-center" id="fn-ecd"></div>
-              </div>
-            </div>
-
-            <!-- ECF -->
-            <div class="col-md-4">
-              <label class="form-label fw-semibold">ECF <span class="text-danger">*</span></label>
-              <div class="drop-zone" id="dz-ecf">
-                <input type="file" name="ecf" id="ecf" accept=".txt">
-                <div class="text-center">
-                  <i class="bi bi-file-earmark-bar-graph fs-2 text-secondary"></i>
-                  <div class="mt-2"><label for="ecf">Clique ou arraste o arquivo ECF</label></div>
-                  <div class="text-muted small">Escrituração Contábil Fiscal (.txt)</div>
-                </div>
-                <div class="file-name text-center" id="fn-ecf"></div>
-              </div>
-            </div>
-
-            <!-- EFD -->
-            <div class="col-md-4">
-              <label class="form-label fw-semibold">EFD-Contribuições <span class="text-muted small">(opcional)</span></label>
-              <div class="drop-zone" id="dz-efd">
-                <input type="file" name="efd" id="efd" accept=".txt">
-                <div class="text-center">
-                  <i class="bi bi-file-earmark-spreadsheet fs-2 text-secondary"></i>
-                  <div class="mt-2"><label for="efd">Clique ou arraste o arquivo EFD</label></div>
-                  <div class="text-muted small">EFD-Contribuições / PIS-COFINS (.txt)</div>
-                </div>
-                <div class="file-name text-center" id="fn-efd"></div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Opções -->
-          <div class="row g-3 mb-4">
-            <div class="col-md-4">
-              <label class="form-label fw-semibold" for="limite_valor">Valor mínimo gatilhos (R$)</label>
-              <input type="number" class="form-control" name="limite_valor" id="limite_valor"
-                     min="0" step="100" value="0" placeholder="0 = sem limite">
-              <div class="form-text">Filtra lançamentos abaixo desse valor nos gatilhos de histórico.</div>
-            </div>
-            <div class="col-md-4">
-              <label class="form-label fw-semibold" for="amostra">Máx. achados por gatilho</label>
-              <input type="number" class="form-control" name="amostra" id="amostra"
-                     min="0" step="10" value="50" placeholder="50">
-              <div class="form-text">0 = ilimitado. Recomendado: 50 para arquivos grandes.</div>
-            </div>
-            <div class="col-md-4">
-              <label class="form-label fw-semibold">Relatórios</label>
-              <div class="form-check">
-                <input class="form-check-input" type="checkbox" name="xlsx" id="xlsx" checked>
-                <label class="form-check-label" for="xlsx">
-                  <i class="bi bi-file-earmark-excel text-success me-1"></i>Gerar Excel (.xlsx)
-                </label>
-              </div>
-              <div class="form-check">
-                <input class="form-check-input" type="checkbox" name="pdf" id="pdf" checked>
-                <label class="form-check-label" for="pdf">
-                  <i class="bi bi-file-earmark-pdf text-danger me-1"></i>Gerar Parecer PDF
-                </label>
-              </div>
-            </div>
-          </div>
-
-          <div class="d-grid">
-            <button type="submit" class="btn btn-primary btn-lg fw-semibold" id="btnAuditar"
-                    style="background:var(--azul);border-color:var(--azul)">
-              <i class="bi bi-search me-2"></i>Executar Auditoria
-            </button>
-          </div>
-
-        </form>
-      </div>
-    </div>
-
-    <!-- Regras incluídas -->
-    <div class="card">
-      <div class="card-header bg-light text-dark">
-        <i class="bi bi-list-check me-2"></i>Regras implementadas (R01–R10)
-      </div>
-      <div class="card-body p-0">
-        <table class="table table-sm table-hover mb-0">
-          <thead class="table-light">
-            <tr><th>Código</th><th>Descrição</th><th>Tributo</th></tr>
-          </thead>
-          <tbody>
-            <tr><td><span class="badge bg-primary">R01</span></td><td>Saldo negativo IRPJ/CSLL + IRRF não aproveitado</td><td>IRPJ/CSLL</td></tr>
-            <tr><td><span class="badge bg-primary">R02</span></td><td>IRRF retido em contas ECD não aproveitado na ECF</td><td>IRPJ</td></tr>
-            <tr><td><span class="badge bg-primary">R03</span></td><td>CSRF retida na fonte não deduzida da CSLL</td><td>CSLL</td></tr>
-            <tr><td><span class="badge bg-primary">R04</span></td><td>Estimativas mensais de IRPJ/CSLL pagas a maior</td><td>IRPJ/CSLL</td></tr>
-            <tr><td><span class="badge bg-primary">R05</span></td><td>Créditos de PIS/COFINS subutilizados</td><td>PIS/COFINS</td></tr>
-            <tr><td><span class="badge bg-primary">R06</span></td><td>Incentivo PAT não deduzido do IRPJ</td><td>IRPJ</td></tr>
-            <tr><td><span class="badge bg-primary">R07</span></td><td>Depreciação acelerada não escriturada no LALUR</td><td>IRPJ</td></tr>
-            <tr><td><span class="badge bg-primary">R08</span></td><td>Prejuízo fiscal não compensado (limite 30%)</td><td>IRPJ/CSLL</td></tr>
-            <tr><td><span class="badge bg-primary">R09</span></td><td>Subvenções sem tratamento no LALUR</td><td>IRPJ/CSLL</td></tr>
-            <tr><td><span class="badge bg-primary">R10</span></td><td>Perdas em créditos/PDD sem dedução no LALUR</td><td>IRPJ/CSLL</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
+  <!-- Hero -->
+  <div class="as-hero">
+    <h1 class="as-hero-title">Auditoria de Creditos Tributarios</h1>
+    <p class="as-hero-desc">
+      Envie os arquivos SPED da empresa para identificar creditos nao aproveitados de IRPJ, CSLL, PIS e COFINS no regime do Lucro Real.
+    </p>
   </div>
+
+  <!-- Upload Card -->
+  <div class="as-card as-mb-3">
+    <div class="as-card-header as-card-header-dark">
+      <i class="bi bi-cloud-upload"></i>
+      Arquivos SPED
+    </div>
+    <div class="as-card-body">
+      <form action="/auditar" method="post" enctype="multipart/form-data" id="formAuditoria">
+
+        <!-- Upload Zones -->
+        <div class="as-upload-grid">
+          <!-- ECD -->
+          <div class="as-upload-zone" id="dz-ecd">
+            <span class="as-upload-required">Obrigatorio</span>
+            <input type="file" name="ecd" id="ecd" accept=".txt">
+            <div class="as-upload-icon"><i class="bi bi-file-earmark-text"></i></div>
+            <label for="ecd" class="as-upload-label">ECD - Escrituracao Contabil Digital</label>
+            <div class="as-upload-hint">Arraste ou clique para selecionar (.txt)</div>
+            <div class="as-upload-filename" id="fn-ecd"></div>
+          </div>
+
+          <!-- ECF -->
+          <div class="as-upload-zone" id="dz-ecf">
+            <span class="as-upload-required">Obrigatorio</span>
+            <input type="file" name="ecf" id="ecf" accept=".txt">
+            <div class="as-upload-icon"><i class="bi bi-file-earmark-bar-graph"></i></div>
+            <label for="ecf" class="as-upload-label">ECF - Escrituracao Contabil Fiscal</label>
+            <div class="as-upload-hint">Arraste ou clique para selecionar (.txt)</div>
+            <div class="as-upload-filename" id="fn-ecf"></div>
+          </div>
+        </div>
+
+        <!-- Options -->
+        <div class="as-options">
+          <div class="as-form-group">
+            <label for="limite_valor">Valor minimo (R$)</label>
+            <input type="number" class="as-input" name="limite_valor" id="limite_valor"
+                   min="0" step="100" value="0" placeholder="0 = sem filtro">
+            <div class="as-form-hint">Filtra gatilhos de historico abaixo desse valor</div>
+          </div>
+          <div class="as-form-group">
+            <label for="amostra">Max. achados por gatilho</label>
+            <input type="number" class="as-input" name="amostra" id="amostra"
+                   min="0" step="10" value="50" placeholder="50">
+            <div class="as-form-hint">0 = ilimitado. Recomendado: 50</div>
+          </div>
+          <div class="as-form-group">
+            <label>Relatorios de saida</label>
+            <div class="as-checkbox-group">
+              <label class="as-checkbox">
+                <input type="checkbox" name="xlsx" id="xlsx" checked>
+                <i class="bi bi-file-earmark-excel" style="color:var(--success-500)"></i>
+                Relatorio Excel (.xlsx)
+              </label>
+              <label class="as-checkbox">
+                <input type="checkbox" name="pdf" id="pdf" checked>
+                <i class="bi bi-file-earmark-pdf" style="color:var(--danger-500)"></i>
+                Parecer Tecnico PDF
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Submit -->
+        <button type="submit" class="as-btn as-btn-primary as-btn-lg" id="btnAuditar" style="width:100%">
+          <i class="bi bi-search"></i>
+          Executar Auditoria
+        </button>
+
+      </form>
+    </div>
+  </div>
+
+  <!-- Rules -->
+  <div class="as-card">
+    <div class="as-card-header">
+      <i class="bi bi-list-check" style="color:var(--accent-500)"></i>
+      10 Regras de Auditoria Implementadas
+    </div>
+    <div class="as-rules-grid">
+      <div class="as-rule-item">
+        <span class="as-rule-code">R01</span>
+        <div><div class="as-rule-desc">Saldo negativo IRPJ/CSLL e IRRF nao aproveitado</div><div class="as-rule-tributo">IRPJ / CSLL</div></div>
+      </div>
+      <div class="as-rule-item">
+        <span class="as-rule-code">R02</span>
+        <div><div class="as-rule-desc">IRRF retido em contas ECD nao aproveitado na ECF</div><div class="as-rule-tributo">IRPJ</div></div>
+      </div>
+      <div class="as-rule-item">
+        <span class="as-rule-code">R03</span>
+        <div><div class="as-rule-desc">CSRF retida na fonte nao deduzida da CSLL</div><div class="as-rule-tributo">CSLL</div></div>
+      </div>
+      <div class="as-rule-item">
+        <span class="as-rule-code">R04</span>
+        <div><div class="as-rule-desc">Estimativas mensais de IRPJ/CSLL pagas a maior</div><div class="as-rule-tributo">IRPJ / CSLL</div></div>
+      </div>
+      <div class="as-rule-item">
+        <span class="as-rule-code">R05</span>
+        <div><div class="as-rule-desc">Creditos de PIS/COFINS subutilizados</div><div class="as-rule-tributo">PIS / COFINS</div></div>
+      </div>
+      <div class="as-rule-item">
+        <span class="as-rule-code">R06</span>
+        <div><div class="as-rule-desc">Incentivo PAT nao deduzido do IRPJ</div><div class="as-rule-tributo">IRPJ</div></div>
+      </div>
+      <div class="as-rule-item">
+        <span class="as-rule-code">R07</span>
+        <div><div class="as-rule-desc">Depreciacao acelerada nao escriturada no LALUR</div><div class="as-rule-tributo">IRPJ</div></div>
+      </div>
+      <div class="as-rule-item">
+        <span class="as-rule-code">R08</span>
+        <div><div class="as-rule-desc">Prejuizo fiscal nao compensado (limite 30%)</div><div class="as-rule-tributo">IRPJ / CSLL</div></div>
+      </div>
+      <div class="as-rule-item">
+        <span class="as-rule-code">R09</span>
+        <div><div class="as-rule-desc">Subvencoes sem tratamento no LALUR</div><div class="as-rule-tributo">IRPJ / CSLL</div></div>
+      </div>
+      <div class="as-rule-item">
+        <span class="as-rule-code">R10</span>
+        <div><div class="as-rule-desc">Perdas em creditos/PDD sem deducao no LALUR</div><div class="as-rule-tributo">IRPJ / CSLL</div></div>
+      </div>
+    </div>
+  </div>
+
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script>
+(function() {
   // Drag & drop + file name display
-  ['ecd','ecf','efd'].forEach(id => {
-    const dz = document.getElementById('dz-' + id);
-    const input = document.getElementById(id);
-    const fn = document.getElementById('fn-' + id);
+  ['ecd','ecf'].forEach(function(id) {
+    var dz = document.getElementById('dz-' + id);
+    var input = document.getElementById(id);
+    var fn = document.getElementById('fn-' + id);
 
-    dz.addEventListener('click', () => input.click());
-    input.addEventListener('change', () => {
-      fn.textContent = input.files[0] ? input.files[0].name : '';
+    dz.addEventListener('click', function(e) {
+      if (e.target.tagName !== 'INPUT') input.click();
     });
-    dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('dragover'); });
-    dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
-    dz.addEventListener('drop', e => {
+
+    input.addEventListener('change', function() {
+      if (input.files[0]) {
+        fn.textContent = input.files[0].name;
+        dz.classList.add('has-file');
+      } else {
+        fn.textContent = '';
+        dz.classList.remove('has-file');
+      }
+    });
+
+    dz.addEventListener('dragover', function(e) {
+      e.preventDefault();
+      dz.classList.add('dragover');
+    });
+    dz.addEventListener('dragleave', function() {
+      dz.classList.remove('dragover');
+    });
+    dz.addEventListener('drop', function(e) {
       e.preventDefault();
       dz.classList.remove('dragover');
       if (e.dataTransfer.files[0]) {
         input.files = e.dataTransfer.files;
         fn.textContent = e.dataTransfer.files[0].name;
+        dz.classList.add('has-file');
       }
     });
   });
 
-  // Loading state on submit
-  document.getElementById('formAuditoria').addEventListener('submit', () => {
-    const btn = document.getElementById('btnAuditar');
+  // Loading state
+  document.getElementById('formAuditoria').addEventListener('submit', function() {
+    var btn = document.getElementById('btnAuditar');
     btn.disabled = true;
-    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Processando arquivos SPED...';
+    btn.innerHTML = '<span class="as-spinner"></span> Processando arquivos SPED...';
   });
+})();
 </script>
 {% endblock %}

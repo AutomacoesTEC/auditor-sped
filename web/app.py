@@ -97,7 +97,8 @@ def auditar():
 
     ecd = request.files.get("ecd")
     ecf = request.files.get("ecf")
-    efd = request.files.get("efd")
+    # EFD-Contribuicoes desabilitado temporariamente (logica preservada no backend)
+    # efd = request.files.get("efd")
 
     if (not ecd or ecd.filename == "") and (not ecf or ecf.filename == ""):
         flash("Envie pelo menos o arquivo ECD ou ECF.", "erro")
@@ -108,7 +109,7 @@ def auditar():
 
     caminho_ecd = _salvar_upload(ecd, dir_sessao, "ecd")
     caminho_ecf = _salvar_upload(ecf, dir_sessao, "ecf")
-    caminho_efd = _salvar_upload(efd, dir_sessao, "efd")
+    caminho_efd = None  # EFD temporariamente desabilitado
 
     limite_valor = float(request.form.get("limite_valor", 0) or 0)
     amostra = int(request.form.get("amostra", 50) or 50)

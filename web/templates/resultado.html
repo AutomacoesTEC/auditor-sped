@@ -1,178 +1,558 @@
 {% extends "base.html" %}
-{% block title %}Resultado — {{ resultado.empresa or 'Auditoria' }}{% endblock %}
+{% block title %}Resultado | {{ resultado.empresa or 'Auditoria' }}{% endblock %}
+
+{% block head %}
+<style>
+  /* ---- HEADER RESULTADO ---- */
+  .as-result-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--gray-200);
+  }
+  .as-result-company {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--navy-800);
+    line-height: 1.3;
+  }
+  .as-result-meta {
+    display: flex;
+    gap: 1.5rem;
+    margin-top: .35rem;
+    font-size: .82rem;
+    color: var(--gray-500);
+  }
+  .as-result-meta span { display: flex; align-items: center; gap: 5px; }
+
+  /* ---- KPIs ---- */
+  .as-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  .as-kpi {
+    background: #fff;
+    border-radius: var(--radius-lg);
+    padding: 1.25rem 1.5rem;
+    border: 1px solid var(--gray-200);
+    box-shadow: var(--shadow-sm);
+    position: relative;
+    overflow: hidden;
+  }
+  .as-kpi::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+  }
+  .as-kpi-valor .as-kpi::before { background: linear-gradient(90deg, var(--accent-500), #0EA5E9); }
+  .as-kpi-achados .as-kpi::before { background: var(--navy-700); }
+  .as-kpi-gatilhos .as-kpi::before { background: var(--warning-500); }
+  .as-kpi-alta .as-kpi::before { background: var(--danger-500); }
+  .as-kpi-label {
+    font-size: .75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    color: var(--gray-400);
+    margin-bottom: .5rem;
+  }
+  .as-kpi-number {
+    font-size: 1.75rem;
+    font-weight: 800;
+    line-height: 1.2;
+    color: var(--gray-800);
+  }
+  .as-kpi-valor .as-kpi-number { color: var(--accent-500); }
+  .as-kpi-alta .as-kpi-number { color: var(--danger-500); }
+  .as-kpi-icon {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    font-size: 1.4rem;
+    opacity: .12;
+    color: var(--gray-800);
+  }
+
+  /* ---- DOWNLOADS ---- */
+  .as-downloads {
+    display: flex;
+    gap: .75rem;
+    flex-wrap: wrap;
+    margin-bottom: 2rem;
+  }
+  .as-download-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    font-size: .85rem;
+    text-decoration: none;
+    transition: all .15s;
+    box-shadow: var(--shadow-sm);
+  }
+  .as-download-xlsx {
+    background: #fff;
+    color: var(--success-500);
+    border: 1px solid #A7F3D0;
+  }
+  .as-download-xlsx:hover { background: var(--success-50); color: var(--success-500); }
+  .as-download-pdf {
+    background: #fff;
+    color: var(--danger-500);
+    border: 1px solid #FECACA;
+  }
+  .as-download-pdf:hover { background: var(--danger-50); color: var(--danger-500); }
+
+  /* ---- ACHADOS / FINDINGS ---- */
+  .as-findings { margin-bottom: 2rem; }
+  .as-finding {
+    background: #fff;
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-lg);
+    margin-bottom: 1rem;
+    overflow: hidden;
+    transition: box-shadow .2s;
+  }
+  .as-finding:hover { box-shadow: var(--shadow-md); }
+  .as-finding-header {
+    padding: 1rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    user-select: none;
+    transition: background .15s;
+  }
+  .as-finding-header:hover { background: var(--gray-50); }
+  .as-finding-toggle {
+    font-size: .9rem;
+    color: var(--gray-400);
+    transition: transform .2s;
+    flex-shrink: 0;
+  }
+  .as-finding.open .as-finding-toggle { transform: rotate(90deg); }
+  .as-finding-title {
+    font-weight: 600;
+    font-size: .9rem;
+    color: var(--gray-800);
+    flex: 1;
+  }
+  .as-finding-value {
+    font-weight: 700;
+    font-size: .95rem;
+    color: var(--navy-800);
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    white-space: nowrap;
+  }
+
+  .as-finding-body {
+    display: none;
+    border-top: 1px solid var(--gray-100);
+  }
+  .as-finding.open .as-finding-body { display: block; }
+  .as-finding-content {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 1.5rem;
+    padding: 1.5rem;
+  }
+  .as-finding-desc {
+    font-size: .88rem;
+    color: var(--gray-600);
+    line-height: 1.6;
+    margin-bottom: 1rem;
+  }
+  .as-evidence-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .as-evidence-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 6px 0;
+    font-size: .82rem;
+    color: var(--gray-500);
+    border-bottom: 1px dashed var(--gray-100);
+  }
+  .as-evidence-item:last-child { border-bottom: none; }
+  .as-evidence-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--accent-500);
+    flex-shrink: 0;
+    margin-top: 6px;
+  }
+
+  /* Sidebar do achado */
+  .as-finding-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  .as-sidebar-box {
+    padding: 1rem;
+    border-radius: var(--radius-md);
+    font-size: .82rem;
+    line-height: 1.5;
+  }
+  .as-sidebar-recommend {
+    background: #F0F9FF;
+    border: 1px solid #BAE6FD;
+    color: #0C4A6E;
+  }
+  .as-sidebar-risk {
+    background: var(--danger-50);
+    border: 1px solid #FECACA;
+    color: #991B1B;
+  }
+  .as-sidebar-legal {
+    background: var(--gray-50);
+    border: 1px solid var(--gray-200);
+    color: var(--gray-600);
+  }
+  .as-sidebar-label {
+    font-weight: 700;
+    font-size: .72rem;
+    text-transform: uppercase;
+    letter-spacing: .4px;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  /* Semaforo de confianca */
+  .as-confidence {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: .75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .3px;
+  }
+  .as-conf-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+  .as-conf-alta .as-conf-dot { background: var(--danger-500); }
+  .as-conf-media .as-conf-dot { background: var(--warning-500); }
+  .as-conf-baixa .as-conf-dot { background: var(--gray-400); }
+  .as-conf-alta { color: var(--danger-500); }
+  .as-conf-media { color: #92400E; }
+  .as-conf-baixa { color: var(--gray-500); }
+
+  /* ---- TRIGGERS / GATILHOS ---- */
+  .as-trigger-controls {
+    display: flex;
+    gap: .75rem;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+  }
+  .as-search-input {
+    flex: 1;
+    min-width: 200px;
+    padding: 8px 12px 8px 36px;
+    border: 1px solid var(--gray-300);
+    border-radius: var(--radius-sm);
+    font-family: var(--font-sans);
+    font-size: .85rem;
+    background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%2394A3B8' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85zm-5.442.156a5 5 0 1 1 0-10 5 5 0 0 1 0 10z'/%3E%3C/svg%3E") 10px center no-repeat;
+    transition: border-color .15s;
+  }
+  .as-search-input:focus {
+    outline: none;
+    border-color: var(--accent-500);
+    box-shadow: 0 0 0 3px rgba(56,189,248,.12);
+  }
+  .as-filter-btn {
+    padding: 7px 14px;
+    border-radius: 20px;
+    font-size: .78rem;
+    font-weight: 600;
+    border: 1px solid var(--gray-300);
+    background: #fff;
+    color: var(--gray-600);
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .as-filter-btn:hover { border-color: var(--gray-400); }
+  .as-filter-btn.active {
+    background: var(--navy-800);
+    color: #fff;
+    border-color: var(--navy-800);
+  }
+
+  .as-trigger-stats {
+    display: flex;
+    gap: .5rem;
+    margin-left: auto;
+  }
+  .as-trigger-stat {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: .75rem;
+    font-weight: 600;
+  }
+
+  /* ---- NO RESULTS ---- */
+  .as-no-results {
+    text-align: center;
+    padding: 3rem 2rem;
+    color: var(--gray-500);
+  }
+  .as-no-results i {
+    font-size: 2.5rem;
+    color: var(--success-500);
+    margin-bottom: 1rem;
+    display: block;
+  }
+
+  /* ---- RESPONSIVE ---- */
+  @media (max-width: 992px) {
+    .as-kpi-grid { grid-template-columns: repeat(2, 1fr); }
+    .as-finding-content { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 600px) {
+    .as-kpi-grid { grid-template-columns: 1fr; }
+    .as-result-header { flex-direction: column; }
+  }
+</style>
+{% endblock %}
 
 {% block content %}
 {% set regras = resultado.regras %}
 {% set gat = resultado.gatilhos %}
 {% set resumo = gat.resumo %}
 
-<!-- Cabeçalho -->
-<div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
+<!-- Header -->
+<div class="as-result-header">
   <div>
-    <h3 class="fw-bold mb-0" style="color:var(--azul)">{{ resultado.empresa or 'Empresa' }}</h3>
-    <div class="text-muted small">
-      CNPJ: {{ resultado.cnpj or '—' }} &nbsp;|&nbsp; Período: {{ resultado.periodo or '—' }}
+    <div class="as-result-company">{{ resultado.empresa or 'Empresa nao identificada' }}</div>
+    <div class="as-result-meta">
+      <span><i class="bi bi-building"></i> {{ resultado.cnpj or 'CNPJ nao informado' }}</span>
+      <span><i class="bi bi-calendar3"></i> {{ resultado.periodo or 'Periodo nao identificado' }}</span>
     </div>
   </div>
-  <a href="/" class="btn btn-outline-secondary btn-sm">
-    <i class="bi bi-arrow-left me-1"></i>Nova auditoria
+  <a href="/" class="as-btn as-btn-outline">
+    <i class="bi bi-arrow-left"></i>
+    Nova Auditoria
   </a>
 </div>
 
 <!-- KPIs -->
-<div class="row g-3 mb-4">
-  <div class="col-sm-6 col-lg-3">
-    <div class="card text-center p-3">
-      <div class="text-muted small mb-1">Valor estimado total</div>
-      <div class="valor-destaque">R$ {{ '{:,.2f}'.format(regras.valor_estimado).replace(',','X').replace('.',',').replace('X','.') }}</div>
+<div class="as-kpi-grid">
+  <div class="as-kpi-valor">
+    <div class="as-kpi">
+      <i class="bi bi-currency-dollar as-kpi-icon"></i>
+      <div class="as-kpi-label">Valor Estimado Total</div>
+      <div class="as-kpi-number">R$ {{ '{:,.2f}'.format(regras.valor_estimado).replace(',','X').replace('.',',').replace('X','.') }}</div>
     </div>
   </div>
-  <div class="col-sm-6 col-lg-3">
-    <div class="card text-center p-3">
-      <div class="text-muted small mb-1">Achados de regras</div>
-      <div class="valor-destaque text-primary">{{ regras.total_achados }}</div>
+  <div class="as-kpi-achados">
+    <div class="as-kpi">
+      <i class="bi bi-flag as-kpi-icon"></i>
+      <div class="as-kpi-label">Achados de Regras</div>
+      <div class="as-kpi-number">{{ regras.total_achados }}</div>
     </div>
   </div>
-  <div class="col-sm-6 col-lg-3">
-    <div class="card text-center p-3">
-      <div class="text-muted small mb-1">Gatilhos disparados</div>
-      <div class="valor-destaque text-secondary">{{ gat.total }}</div>
+  <div class="as-kpi-gatilhos">
+    <div class="as-kpi">
+      <i class="bi bi-lightning as-kpi-icon"></i>
+      <div class="as-kpi-label">Gatilhos Disparados</div>
+      <div class="as-kpi-number">{{ gat.total }}</div>
     </div>
   </div>
-  <div class="col-sm-6 col-lg-3">
-    <div class="card text-center p-3">
-      <div class="text-muted small mb-1">Gatilhos alta severidade</div>
-      <div class="valor-destaque text-danger">{{ resumo.por_severidade.alta }}</div>
+  <div class="as-kpi-alta">
+    <div class="as-kpi">
+      <i class="bi bi-exclamation-triangle as-kpi-icon"></i>
+      <div class="as-kpi-label">Alta Severidade</div>
+      <div class="as-kpi-number">{{ resumo.por_severidade.alta }}</div>
     </div>
   </div>
 </div>
 
 <!-- Downloads -->
 {% if arquivos %}
-<div class="card mb-4">
-  <div class="card-header bg-success text-white">
-    <i class="bi bi-download me-2"></i>Relatórios gerados
-  </div>
-  <div class="card-body d-flex gap-3 flex-wrap">
-    {% for arq in arquivos %}
-      {% if arq.endswith('.xlsx') %}
-      <a href="/download/{{ session_id }}/{{ arq }}" class="btn btn-success">
-        <i class="bi bi-file-earmark-excel me-2"></i>{{ arq }}
-      </a>
-      {% elif arq.endswith('.pdf') %}
-      <a href="/download/{{ session_id }}/{{ arq }}" class="btn btn-danger">
-        <i class="bi bi-file-earmark-pdf me-2"></i>{{ arq }}
-      </a>
-      {% endif %}
-    {% endfor %}
-  </div>
+<div class="as-downloads">
+  {% for arq in arquivos %}
+    {% if arq.endswith('.xlsx') %}
+    <a href="/download/{{ session_id }}/{{ arq }}" class="as-download-btn as-download-xlsx">
+      <i class="bi bi-file-earmark-excel"></i>
+      Baixar Relatorio Excel
+    </a>
+    {% elif arq.endswith('.pdf') %}
+    <a href="/download/{{ session_id }}/{{ arq }}" class="as-download-btn as-download-pdf">
+      <i class="bi bi-file-earmark-pdf"></i>
+      Baixar Parecer Tecnico
+    </a>
+    {% endif %}
+  {% endfor %}
 </div>
 {% endif %}
 
 <!-- Achados das Regras -->
 {% if regras.achados %}
-<div class="card mb-4">
-  <div class="card-header text-white" style="background:var(--azul)">
-    <i class="bi bi-flag me-2"></i>Achados das Regras de Auditoria ({{ regras.total_achados }})
+<div class="as-card as-findings as-mb-3">
+  <div class="as-card-header as-card-header-dark">
+    <i class="bi bi-flag"></i>
+    Achados das Regras de Auditoria
+    <span style="margin-left:auto; font-weight:400; font-size:.8rem; opacity:.7">
+      {{ regras.total_achados }} achado(s) | R$ {{ '{:,.2f}'.format(regras.valor_estimado).replace(',','X').replace('.',',').replace('X','.') }}
+    </span>
   </div>
-  <div class="card-body p-0">
-    <div class="accordion" id="accordionRegras">
+  <div style="padding: .75rem">
     {% for a in regras.achados %}
-    <div class="accordion-item border-0">
-      <h2 class="accordion-header">
-        <button class="accordion-button {% if not loop.first %}collapsed{% endif %}" type="button"
-                data-bs-toggle="collapse" data-bs-target="#regra{{ loop.index }}">
-          <span class="badge bg-primary me-2">{{ a.regra }}</span>
-          <span class="me-2">{{ a.titulo }}</span>
-          <span class="ms-auto me-3 text-nowrap fw-bold">
-            R$ {{ '{:,.2f}'.format(a.valor_estimado).replace(',','X').replace('.',',').replace('X','.') }}
-          </span>
-          <span class="badge
-            {% if a.confianca == 'alta' %}bg-danger
-            {% elif a.confianca == 'media' %}bg-warning text-dark
-            {% else %}bg-secondary{% endif %}">
-            {{ a.confianca }}
-          </span>
-        </button>
-      </h2>
-      <div id="regra{{ loop.index }}" class="accordion-collapse collapse {% if loop.first %}show{% endif %}"
-           data-bs-parent="#accordionRegras">
-        <div class="accordion-body">
-          <div class="row">
-            <div class="col-md-8">
-              <p class="mb-2"><strong>Tributo:</strong> {{ a.tributo }}</p>
-              <p class="mb-2">{{ a.descricao }}</p>
-              {% if a.registros_origem %}
-              <div class="mb-2">
-                <strong>Evidências:</strong>
-                <ul class="mb-0 mt-1">
-                  {% for reg in a.registros_origem %}
-                  <li class="small text-muted">{{ reg }}</li>
-                  {% endfor %}
-                </ul>
-              </div>
-              {% endif %}
+    <div class="as-finding {% if loop.first %}open{% endif %}" data-finding>
+      <div class="as-finding-header" onclick="toggleFinding(this)">
+        <span class="as-badge-rule">{{ a.regra }}</span>
+        <i class="bi bi-chevron-right as-finding-toggle"></i>
+        <span class="as-finding-title">{{ a.titulo }}</span>
+        <span class="as-confidence as-conf-{{ a.confianca }}">
+          <span class="as-conf-dot"></span>
+          {{ a.confianca }}
+        </span>
+        <span class="as-finding-value">
+          R$ {{ '{:,.2f}'.format(a.valor_estimado).replace(',','X').replace('.',',').replace('X','.') }}
+        </span>
+      </div>
+      <div class="as-finding-body">
+        <div class="as-finding-content">
+          <div>
+            <div style="font-size:.78rem;color:var(--gray-400);font-weight:600;margin-bottom:.5rem">
+              TRIBUTO: {{ a.tributo }}
             </div>
-            <div class="col-md-4">
-              <div class="bg-light rounded p-3 small">
-                <div class="fw-semibold mb-1"><i class="bi bi-lightbulb me-1 text-warning"></i>Recomendação</div>
-                <p class="mb-2">{{ a.recomendacao }}</p>
-                {% if a.risco %}
-                <div class="fw-semibold mb-1 text-danger"><i class="bi bi-exclamation-triangle me-1"></i>Risco</div>
-                <p class="mb-1">{{ a.risco }}</p>
-                {% endif %}
-                <div class="text-muted mt-2">Base: {{ a.base_legal }}</div>
+            <div class="as-finding-desc">{{ a.descricao }}</div>
+
+            {% if a.registros_origem %}
+            <div style="margin-bottom:.5rem;font-size:.78rem;font-weight:600;color:var(--gray-500);text-transform:uppercase;letter-spacing:.4px">
+              Evidencias ({{ a.registros_origem|length }})
+            </div>
+            <ul class="as-evidence-list">
+              {% for reg in a.registros_origem %}
+              <li class="as-evidence-item">
+                <span class="as-evidence-dot"></span>
+                <span>{{ reg }}</span>
+              </li>
+              {% endfor %}
+            </ul>
+            {% endif %}
+          </div>
+
+          <div class="as-finding-sidebar">
+            {% if a.recomendacao %}
+            <div class="as-sidebar-box as-sidebar-recommend">
+              <div class="as-sidebar-label">
+                <i class="bi bi-lightbulb" style="color:#0369A1"></i> Recomendacao
               </div>
+              {{ a.recomendacao }}
+            </div>
+            {% endif %}
+
+            {% if a.risco %}
+            <div class="as-sidebar-box as-sidebar-risk">
+              <div class="as-sidebar-label">
+                <i class="bi bi-exclamation-triangle"></i> Risco
+              </div>
+              {{ a.risco }}
+            </div>
+            {% endif %}
+
+            <div class="as-sidebar-box as-sidebar-legal">
+              <div class="as-sidebar-label">
+                <i class="bi bi-book" style="color:var(--gray-500)"></i> Base Legal
+              </div>
+              {{ a.base_legal }}
             </div>
           </div>
         </div>
       </div>
     </div>
     {% endfor %}
-    </div>
   </div>
 </div>
 {% else %}
-<div class="alert alert-success mb-4">
-  <i class="bi bi-check-circle me-2"></i>
-  Nenhum achado identificado pelas regras de auditoria (R01–R10).
+<div class="as-card as-mb-3">
+  <div class="as-no-results">
+    <i class="bi bi-check-circle"></i>
+    <div style="font-weight:600;font-size:1rem;margin-bottom:.25rem;color:var(--gray-700)">
+      Nenhum achado identificado
+    </div>
+    <div style="font-size:.88rem">
+      As 10 regras de auditoria (R01 a R10) foram executadas e nao identificaram creditos restituiveis.
+    </div>
+  </div>
 </div>
 {% endif %}
 
 <!-- Gatilhos -->
 {% if gat.achados %}
-<div class="card mb-4">
-  <div class="card-header text-white" style="background:#374151">
-    <i class="bi bi-lightning me-2"></i>Gatilhos Automáticos ({{ gat.total }})
-    &nbsp;&mdash;&nbsp;
-    <span class="badge badge-alta">Alta: {{ resumo.por_severidade.alta }}</span>&nbsp;
-    <span class="badge badge-media">Média: {{ resumo.por_severidade.media }}</span>&nbsp;
-    <span class="badge badge-baixa">Baixa: {{ resumo.por_severidade.baixa }}</span>
+<div class="as-card as-mb-3">
+  <div class="as-card-header as-card-header-dark" style="background:linear-gradient(135deg, var(--gray-700), var(--gray-800))">
+    <i class="bi bi-lightning"></i>
+    Gatilhos Automaticos
+    <span style="margin-left:auto; font-weight:400; font-size:.8rem; opacity:.7">
+      {{ gat.total }} disparados
+    </span>
   </div>
-  <div class="card-body p-0">
-    <div class="table-responsive">
-      <table class="table table-sm table-hover mb-0">
-        <thead class="table-light">
+  <div class="as-card-body" style="padding:1rem 1.5rem">
+
+    <!-- Controls -->
+    <div class="as-trigger-controls">
+      <input type="text" class="as-search-input" id="triggerSearch" placeholder="Buscar gatilho, conta ou historico...">
+      <button class="as-filter-btn active" data-filter="todos" onclick="filterTriggers(this,'todos')">Todos</button>
+      <button class="as-filter-btn" data-filter="alta" onclick="filterTriggers(this,'alta')">Alta</button>
+      <button class="as-filter-btn" data-filter="media" onclick="filterTriggers(this,'media')">Media</button>
+      <button class="as-filter-btn" data-filter="baixa" onclick="filterTriggers(this,'baixa')">Baixa</button>
+      <div class="as-trigger-stats">
+        <span class="as-trigger-stat"><span class="as-badge as-badge-alta">{{ resumo.por_severidade.alta }}</span></span>
+        <span class="as-trigger-stat"><span class="as-badge as-badge-media">{{ resumo.por_severidade.media }}</span></span>
+        <span class="as-trigger-stat"><span class="as-badge as-badge-baixa">{{ resumo.por_severidade.baixa }}</span></span>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div style="overflow-x:auto; max-height:600px; overflow-y:auto;">
+      <table class="as-table" id="triggerTable">
+        <thead>
           <tr>
-            <th>Gatilho</th>
-            <th>Tipo</th>
+            <th style="width:90px">Gatilho</th>
+            <th style="width:70px">Tipo</th>
             <th>Conta</th>
-            <th>Histórico</th>
-            <th class="text-end">Valor (R$)</th>
-            <th>Severidade</th>
+            <th>Historico</th>
+            <th class="as-text-right" style="width:120px">Valor (R$)</th>
+            <th style="width:90px">Severidade</th>
           </tr>
         </thead>
         <tbody>
         {% for g in gat.achados %}
-        <tr>
-          <td><span class="badge bg-secondary">{{ g.gatilho }}</span><br><small class="text-muted">{{ g.categoria }}</small></td>
-          <td>{{ g.tipo }}</td>
-          <td class="small">{{ g.conta }}</td>
-          <td class="small text-muted">{{ g.historico[:80] }}{% if g.historico|length > 80 %}…{% endif %}</td>
-          <td class="text-end">{{ '{:,.2f}'.format(g.valor).replace(',','X').replace('.',',').replace('X','.') }}</td>
+        <tr data-sev="{{ g.severidade }}">
           <td>
-            <span class="badge badge-{{ g.severidade }}">{{ g.severidade }}</span>
+            <span class="as-badge-rule">{{ g.gatilho }}</span>
+            <div class="as-text-xs as-text-muted" style="margin-top:3px">{{ g.categoria }}</div>
           </td>
+          <td class="as-text-sm">{{ g.tipo }}</td>
+          <td class="as-text-sm">{{ g.conta }}</td>
+          <td class="as-text-sm as-text-muted">{{ g.historico[:100] }}{% if g.historico|length > 100 %}...{% endif %}</td>
+          <td class="as-text-right as-text-mono as-text-sm">{{ '{:,.2f}'.format(g.valor).replace(',','X').replace('.',',').replace('X','.') }}</td>
+          <td><span class="as-badge as-badge-{{ g.severidade }}">{{ g.severidade }}</span></td>
         </tr>
         {% endfor %}
         </tbody>
@@ -182,4 +562,45 @@
 </div>
 {% endif %}
 
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Toggle findings
+function toggleFinding(header) {
+  var finding = header.parentElement;
+  finding.classList.toggle('open');
+}
+
+// Filter triggers by severity
+function filterTriggers(btn, sev) {
+  // Update active button
+  var btns = document.querySelectorAll('.as-filter-btn');
+  btns.forEach(function(b) { b.classList.remove('active'); });
+  btn.classList.add('active');
+
+  var rows = document.querySelectorAll('#triggerTable tbody tr');
+  rows.forEach(function(row) {
+    if (sev === 'todos' || row.getAttribute('data-sev') === sev) {
+      row.style.display = '';
+    } else {
+      row.style.display = 'none';
+    }
+  });
+}
+
+// Search triggers
+document.getElementById('triggerSearch').addEventListener('input', function() {
+  var q = this.value.toLowerCase();
+  var rows = document.querySelectorAll('#triggerTable tbody tr');
+  rows.forEach(function(row) {
+    var text = row.textContent.toLowerCase();
+    row.style.display = text.indexOf(q) > -1 ? '' : 'none';
+  });
+  // Reset filter buttons
+  var btns = document.querySelectorAll('.as-filter-btn');
+  btns.forEach(function(b) { b.classList.remove('active'); });
+  if (!q) document.querySelector('[data-filter="todos"]').classList.add('active');
+});
+</script>
 {% endblock %}
