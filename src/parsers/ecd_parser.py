@@ -94,12 +94,13 @@ def parse_ecd(caminho: str) -> DadosECD:
     dados = DadosECD(registros_brutos=registros)
 
     # Identificação do arquivo (registro 0000)
+    # Leiaute ECD: |0000|LEIAUTE|TIPO_ESCRIT|IND_SIT_ESP|NUM_REC_ANT|DT_INI|DT_FIN|NOME|CNPJ|...
     if "0000" in registros:
         r0 = registros["0000"][0]
-        dados.dt_ini = r0.campo(2)
-        dados.dt_fin = r0.campo(3)
-        dados.razao_social = r0.campo(4)
-        dados.cnpj = r0.campo(5)
+        dados.dt_ini = r0.campo(5)
+        dados.dt_fin = r0.campo(6)
+        dados.razao_social = r0.campo(7)
+        dados.cnpj = r0.campo(8)
 
     # Plano de contas: I050 + C050 (bloco C é recuperação da ECD anterior)
     for tipo in ("I050", "C050"):

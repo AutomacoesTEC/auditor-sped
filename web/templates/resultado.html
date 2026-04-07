@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+{% block title %}Resultado — {{ resultado.empresa or 'Auditoria' }}{% endblock %}
+
+{% block content %}
+{% set regras = resultado.regras %}
+{% set gat = resultado.gatilhos %}
+{% set resumo = gat.resumo %}
+
+<!-- Cabeçalho -->
+<div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
+  <div>
+    <h3 class="fw-bold mb-0" style="color:var(--azul)">{{ resultado.empresa or 'Empresa' }}</h3>
+    <div class="text-muted small">
+      CNPJ: {{ resultado.cnpj or '—' }} &nbsp;|&nbsp; Período: {{ resultado.periodo or '—' }}
+    </div>
+  </div>
+  <a href="/" class="btn btn-outline-secondary btn-sm">
+    <i class="bi bi-arrow-left me-1"></i>Nova auditoria
+  </a>
+</div>
+
+<!-- KPIs -->
+<div class="row g-3 mb-4">
+  <div class="col-sm-6 col-lg-3">
+    <div class="card text-center p-3">
+      <div class="text-muted small mb-1">Valor estimado total</div>
+      <div class="valor-destaque">R$ {{ '{:,.2f}'.format(regras.valor_estimado).replace(',','X').replace('.',',').replace('X','.') }}</div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-lg-3">
+    <div class="card text-center p-3">
+      <div class="text-muted small mb-1">Achados de regras</div>
+      <div class="valor-destaque text-primary">{{ regras.total_achados }}</div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-lg-3">
+    <div class="card text-center p-3">
+      <div class="text-muted small mb-1">Gatilhos disparados</div>
+      <div class="valor-destaque text-secondary">{{ gat.total }}</div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-lg-3">
+    <div class="card text-center p-3">
+      <div class="text-muted small mb-1">Gatilhos alta severidade</div>
+      <div class="valor-destaque text-danger">{{ resumo.por_severidade.alta }}</div>
+    </div>
+  </div>
+</div>
+
+<!-- Downloads -->
+{% if arquivos %}
+<div class="card mb-4">
+  <div class="card-header bg-success text-white">
+    <i class="bi bi-download me-2"></i>Relatórios gerados
+  </div>
+  <div class="card-body d-flex gap-3 flex-wrap">
+    {% for arq in arquivos %}
+      {% if arq.endswith('.xlsx') %}
+      <a href="/download/{{ session_id }}/{{ arq }}" class="btn btn-success">
+        <i class="bi bi-file-earmark-excel me-2"></i>{{ arq }}
+      </a>
+      {% elif arq.endswith('.pdf') %}
+      <a href="/download/{{ session_id }}/{{ arq }}" class="btn btn-danger">
+        <i class="bi bi-file-earmark-pdf me-2"></i>{{ arq }}
+      </a>
+      {% endif %}
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<!-- Achados das Regras -->
+{% if regras.achados %}
+<div class="card mb-4">
+  <div class="card-header text-white" style="background:var(--azul)">
+    <i class="bi bi-flag me-2"></i>Achados das Regras de Auditoria ({{ regras.total_achados }})
+  </div>
+  <div class="card-body p-0">
+    <div class="accordion" id="accordionRegras">
+    {% for a in regras.achados %}
+    <div class="accordion-item border-0">
+      <h2 class="accordion-header">
+        <button class="accordion-button {% if not loop.first %}collapsed{% endif %}" type="button"
+                data-bs-toggle="collapse" data-bs-target="#regra{{ loop.index }}">
+          <span class="badge bg-primary me-2">{{ a.regra }}</span>
+          <span class="me-2">{{ a.titulo }}</span>
+          <span class="ms-auto me-3 text-nowrap fw-bold">
+            R$ {{ '{:,.2f}'.format(a.valor_estimado).replace(',','X').replace('.',',').replace('X','.') }}
+          </span>
+          <span class="badge
+            {% if a.confianca == 'alta' %}bg-danger
+            {% elif a.confianca == 'media' %}bg-warning text-dark
+            {% else %}bg-secondary{% endif %}">
+            {{ a.confianca }}
+          </span>
+        </button>
+      </h2>
+      <div id="regra{{ loop.index }}" class="accordion-collapse collapse {% if loop.first %}show{% endif %}"
+           data-bs-parent="#accordionRegras">
+        <div class="accordion-body">
+          <div class="row">
+            <div class="col-md-8">
+              <p class="mb-2"><strong>Tributo:</strong> {{ a.tributo }}</p>
+              <p class="mb-2">{{ a.descricao }}</p>
+              {% if a.registros_origem %}
+              <div class="mb-2">
+                <strong>Evidências:</strong>
+                <ul class="mb-0 mt-1">
+                  {% for reg in a.registros_origem %}
+                  <li class="small text-muted">{{ reg }}</li>
+                  {% endfor %}
+                </ul>
+              </div>
+              {% endif %}
+            </div>
+            <div class="col-md-4">
+              <div class="bg-light rounded p-3 small">
+                <div class="fw-semibold mb-1"><i class="bi bi-lightbulb me-1 text-warning"></i>Recomendação</div>
+                <p class="mb-2">{{ a.recomendacao }}</p>
+                {% if a.risco %}
+                <div class="fw-semibold mb-1 text-danger"><i class="bi bi-exclamation-triangle me-1"></i>Risco</div>
+                <p class="mb-1">{{ a.risco }}</p>
+                {% endif %}
+                <div class="text-muted mt-2">Base: {{ a.base_legal }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+    </div>
+  </div>
+</div>
+{% else %}
+<div class="alert alert-success mb-4">
+  <i class="bi bi-check-circle me-2"></i>
+  Nenhum achado identificado pelas regras de auditoria (R01–R10).
+</div>
+{% endif %}
+
+<!-- Gatilhos -->
+{% if gat.achados %}
+<div class="card mb-4">
+  <div class="card-header text-white" style="background:#374151">
+    <i class="bi bi-lightning me-2"></i>Gatilhos Automáticos ({{ gat.total }})
+    &nbsp;&mdash;&nbsp;
+    <span class="badge badge-alta">Alta: {{ resumo.por_severidade.alta }}</span>&nbsp;
+    <span class="badge badge-media">Média: {{ resumo.por_severidade.media }}</span>&nbsp;
+    <span class="badge badge-baixa">Baixa: {{ resumo.por_severidade.baixa }}</span>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-sm table-hover mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>Gatilho</th>
+            <th>Tipo</th>
+            <th>Conta</th>
+            <th>Histórico</th>
+            <th class="text-end">Valor (R$)</th>
+            <th>Severidade</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for g in gat.achados %}
+        <tr>
+          <td><span class="badge bg-secondary">{{ g.gatilho }}</span><br><small class="text-muted">{{ g.categoria }}</small></td>
+          <td>{{ g.tipo }}</td>
+          <td class="small">{{ g.conta }}</td>
+          <td class="small text-muted">{{ g.historico[:80] }}{% if g.historico|length > 80 %}…{% endif %}</td>
+          <td class="text-end">{{ '{:,.2f}'.format(g.valor).replace(',','X').replace('.',',').replace('X','.') }}</td>
+          <td>
+            <span class="badge badge-{{ g.severidade }}">{{ g.severidade }}</span>
+          </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}

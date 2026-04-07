@@ -137,15 +137,16 @@ ECF_TABULAR_CAMPOS = {
 }
 
 # ECF Y570: Rendimentos com IRRF
-# |Y570|CNPJ|NOME|IND_PART|COD_REC|VL_REC|VL_IR_RET|VL_IR_UTIL|
+# |Y570|CNPJ|NOME|IND_PART|COD_REC|ANO_CAL|VL_REC|VL_IR_RET|VL_IR_UTIL|
 Y570_CAMPOS = {
     "cnpj": 1,
     "nome": 2,
     "ind_part": 3,
     "cod_rec": 4,
-    "vl_rec": 5,
-    "vl_ir_ret": 6,
-    "vl_ir_util": 7,
+    "ano_cal": 5,
+    "vl_rec": 6,
+    "vl_ir_ret": 7,
+    "vl_ir_util": 8,
 }
 
 # ECF Y580: PER/DCOMP
