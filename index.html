@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Auditor SPED | Auditoria Tributaria para Lucro Real</title>
+  <meta name="description" content="Sistema de auditoria tributaria que analisa arquivos ECD e ECF para identificar creditos de IRPJ, CSLL, PIS e COFINS nao aproveitados por empresas do Lucro Real.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --navy-900: #0B1D33;
+      --navy-800: #0F2B46;
+      --navy-700: #14375A;
+      --navy-600: #1A4872;
+      --accent: #38BDF8;
+      --accent-light: #7DD3FC;
+      --success: #10B981;
+      --warning: #F59E0B;
+      --danger: #EF4444;
+      --gray-50: #F8FAFC;
+      --gray-100: #F1F5F9;
+      --gray-200: #E2E8F0;
+      --gray-400: #94A3B8;
+      --gray-500: #64748B;
+      --gray-600: #475569;
+      --gray-700: #334155;
+      --gray-800: #1E293B;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--gray-50);
+      color: var(--gray-800);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* NAV */
+    nav {
+      background: var(--navy-900);
+      padding: 0 2rem;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 1px 8px rgba(0,0,0,.3);
+    }
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #fff;
+      text-decoration: none;
+    }
+    .nav-logo {
+      width: 32px; height: 32px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-light));
+      border-radius: 7px;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 900; font-size: .85rem; color: var(--navy-900);
+    }
+    .nav-name { font-weight: 700; font-size: .95rem; color: #fff; }
+    .nav-sub { font-size: .68rem; color: var(--accent-light); display: block; }
+    .nav-links { display: flex; gap: 1.5rem; align-items: center; }
+    .nav-links a {
+      color: rgba(255,255,255,.7);
+      text-decoration: none;
+      font-size: .82rem;
+      font-weight: 500;
+      transition: color .15s;
+    }
+    .nav-links a:hover { color: #fff; }
+    .nav-cta {
+      background: var(--accent) !important;
+      color: var(--navy-900) !important;
+      padding: 6px 16px;
+      border-radius: 6px;
+      font-weight: 700 !important;
+    }
+    .nav-cta:hover { opacity: .9; }
+
+    /* HERO */
+    .hero {
+      background: linear-gradient(135deg, var(--navy-900) 0%, var(--navy-700) 60%, #1E4D7B 100%);
+      padding: 7rem 2rem 6rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -100px; left: -100px; right: -100px; bottom: -100px;
+      background: radial-gradient(ellipse at 30% 40%, rgba(56,189,248,.08) 0%, transparent 60%),
+                  radial-gradient(ellipse at 70% 70%, rgba(56,189,248,.05) 0%, transparent 50%);
+      pointer-events: none;
+    }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(56,189,248,.12);
+      border: 1px solid rgba(56,189,248,.25);
+      color: var(--accent-light);
+      padding: 5px 14px;
+      border-radius: 20px;
+      font-size: .75rem;
+      font-weight: 600;
+      letter-spacing: .3px;
+      text-transform: uppercase;
+      margin-bottom: 1.5rem;
+    }
+    .hero h1 {
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      font-weight: 900;
+      color: #fff;
+      line-height: 1.2;
+      max-width: 760px;
+      margin: 0 auto 1.25rem;
+      letter-spacing: -.5px;
+    }
+    .hero h1 span { color: var(--accent); }
+    .hero p {
+      font-size: 1.05rem;
+      color: rgba(255,255,255,.7);
+      max-width: 560px;
+      margin: 0 auto 2.5rem;
+      line-height: 1.7;
+    }
+    .hero-actions { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+    .btn-hero-primary {
+      background: var(--accent);
+      color: var(--navy-900);
+      padding: 13px 28px;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: .95rem;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all .15s;
+      box-shadow: 0 4px 14px rgba(56,189,248,.3);
+    }
+    .btn-hero-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(56,189,248,.4); }
+    .btn-hero-secondary {
+      background: rgba(255,255,255,.08);
+      color: rgba(255,255,255,.85);
+      border: 1px solid rgba(255,255,255,.15);
+      padding: 13px 28px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: .95rem;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all .15s;
+    }
+    .btn-hero-secondary:hover { background: rgba(255,255,255,.14); color: #fff; }
+
+    /* STATS */
+    .stats {
+      background: var(--navy-800);
+      padding: 2rem;
+      display: flex;
+      justify-content: center;
+      gap: 4rem;
+      flex-wrap: wrap;
+    }
+    .stat { text-align: center; }
+    .stat-num {
+      font-size: 1.8rem;
+      font-weight: 900;
+      color: var(--accent);
+      line-height: 1.2;
+    }
+    .stat-label { font-size: .75rem; color: rgba(255,255,255,.5); text-transform: uppercase; letter-spacing: .4px; margin-top: 2px; }
+
+    /* SECTIONS */
+    section { padding: 5rem 2rem; }
+    .container { max-width: 1100px; margin: 0 auto; }
+    .section-tag {
+      display: inline-block;
+      font-size: .72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      color: var(--accent);
+      margin-bottom: .75rem;
+    }
+    .section-title {
+      font-size: clamp(1.5rem, 3vw, 2rem);
+      font-weight: 800;
+      color: var(--gray-800);
+      line-height: 1.3;
+      margin-bottom: .75rem;
+      letter-spacing: -.3px;
+    }
+    .section-desc {
+      color: var(--gray-500);
+      font-size: .95rem;
+      max-width: 520px;
+      line-height: 1.7;
+    }
+
+    /* RULES GRID */
+    .rules-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1rem;
+      margin-top: 2.5rem;
+    }
+    .rule-card {
+      background: #fff;
+      border: 1px solid var(--gray-200);
+      border-radius: 12px;
+      padding: 1.25rem;
+      display: flex;
+      gap: 1rem;
+      align-items: flex-start;
+      transition: all .2s;
+      box-shadow: 0 1px 3px rgba(0,0,0,.04);
+    }
+    .rule-card:hover {
+      border-color: rgba(56,189,248,.3);
+      box-shadow: 0 4px 12px rgba(56,189,248,.08);
+      transform: translateY(-1px);
+    }
+    .rule-badge {
+      flex-shrink: 0;
+      background: var(--navy-800);
+      color: var(--accent-light);
+      font-size: .7rem;
+      font-weight: 700;
+      padding: 4px 9px;
+      border-radius: 6px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      margin-top: 2px;
+    }
+    .rule-content {}
+    .rule-title { font-weight: 600; font-size: .88rem; color: var(--gray-800); margin-bottom: 3px; }
+    .rule-sub { font-size: .75rem; color: var(--gray-400); }
+    .rule-legal { font-size: .72rem; color: var(--accent); margin-top: 4px; font-weight: 500; }
+
+    /* FEATURES */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+      margin-top: 2.5rem;
+    }
+    .feature {
+      padding: 1.5rem;
+      background: #fff;
+      border-radius: 12px;
+      border: 1px solid var(--gray-200);
+      box-shadow: 0 1px 3px rgba(0,0,0,.04);
+    }
+    .feature-icon {
+      width: 40px; height: 40px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem;
+      margin-bottom: 1rem;
+    }
+    .feature-icon-blue { background: #EFF6FF; }
+    .feature-icon-green { background: #ECFDF5; }
+    .feature-icon-yellow { background: #FFFBEB; }
+    .feature-icon-red { background: #FEF2F2; }
+    .feature-icon-purple { background: #F5F3FF; }
+    .feature-icon-cyan { background: #F0F9FF; }
+    .feature h3 { font-size: .9rem; font-weight: 700; margin-bottom: .4rem; color: var(--gray-800); }
+    .feature p { font-size: .82rem; color: var(--gray-500); line-height: 1.6; }
+
+    /* ARCHITECTURE */
+    .arch-box {
+      background: var(--navy-900);
+      border-radius: 14px;
+      padding: 2rem;
+      margin-top: 2.5rem;
+      font-family: 'SF Mono', 'Fira Code', Consolas, monospace;
+      font-size: .78rem;
+      color: rgba(255,255,255,.7);
+      line-height: 1.8;
+      overflow-x: auto;
+    }
+    .arch-comment { color: rgba(56,189,248,.5); }
+    .arch-dir { color: var(--accent-light); font-weight: 700; }
+    .arch-file { color: rgba(255,255,255,.6); }
+    .arch-note { color: rgba(255,255,255,.35); }
+
+    /* INSTALL */
+    .install-steps {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+      margin-top: 2.5rem;
+    }
+    .install-step {
+      background: #fff;
+      border: 1px solid var(--gray-200);
+      border-radius: 12px;
+      padding: 1.5rem;
+    }
+    .step-num {
+      width: 32px; height: 32px;
+      background: var(--navy-800);
+      color: var(--accent);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800;
+      font-size: .85rem;
+      margin-bottom: 1rem;
+    }
+    .step-title { font-weight: 700; font-size: .9rem; color: var(--gray-800); margin-bottom: .4rem; }
+    .step-desc { font-size: .82rem; color: var(--gray-500); margin-bottom: .75rem; }
+    .code-block {
+      background: var(--navy-900);
+      border-radius: 8px;
+      padding: .75rem 1rem;
+      font-family: 'SF Mono', 'Fira Code', Consolas, monospace;
+      font-size: .75rem;
+      color: var(--accent-light);
+      line-height: 1.6;
+    }
+
+    /* LEGAL TABLE */
+    .legal-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .83rem;
+      margin-top: 2rem;
+      background: #fff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 1px 4px rgba(0,0,0,.06);
+    }
+    .legal-table thead th {
+      background: var(--navy-800);
+      color: rgba(255,255,255,.8);
+      padding: 12px 16px;
+      text-align: left;
+      font-size: .72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .4px;
+    }
+    .legal-table tbody td {
+      padding: 11px 16px;
+      border-bottom: 1px solid var(--gray-100);
+      vertical-align: middle;
+    }
+    .legal-table tbody tr:hover { background: var(--gray-50); }
+    .legal-table tbody tr:last-child td { border-bottom: none; }
+    .legal-mono { font-family: 'SF Mono', 'Fira Code', monospace; font-size: .75rem; color: var(--navy-700); }
+
+    /* CTA BOTTOM */
+    .cta-section {
+      background: linear-gradient(135deg, var(--navy-900), var(--navy-700));
+      text-align: center;
+      padding: 5rem 2rem;
+    }
+    .cta-section h2 { font-size: 2rem; font-weight: 900; color: #fff; margin-bottom: .75rem; }
+    .cta-section p { color: rgba(255,255,255,.6); margin-bottom: 2rem; font-size: .95rem; }
+
+    /* FOOTER */
+    footer {
+      background: var(--navy-900);
+      padding: 2rem;
+      text-align: center;
+      border-top: 1px solid rgba(255,255,255,.05);
+    }
+    footer p { font-size: .75rem; color: rgba(255,255,255,.3); }
+    footer a { color: var(--accent); text-decoration: none; }
+
+    /* RESPONSIVE */
+    @media (max-width: 768px) {
+      .features-grid, .install-steps { grid-template-columns: 1fr; }
+      .stats { gap: 2rem; }
+      .nav-links { display: none; }
+      .hero { padding: 4rem 1.5rem; }
+    }
+    @media (max-width: 992px) {
+      .features-grid { grid-template-columns: repeat(2, 1fr); }
+      .install-steps { grid-template-columns: 1fr; }
+    }
+
+    /* SVG Icons inline */
+    .icon { display: inline-block; vertical-align: middle; }
+  </style>
+</head>
+<body>
+
+<!-- Nav -->
+<nav>
+  <a href="#" class="nav-brand">
+    <div class="nav-logo">AS</div>
+    <div>
+      <span class="nav-name">Auditor SPED</span>
+      <span class="nav-sub">Auditoria Tributaria | Lucro Real</span>
+    </div>
+  </a>
+  <div class="nav-links">
+    <a href="#regras">Regras</a>
+    <a href="#arquitetura">Arquitetura</a>
+    <a href="#instalacao">Instalacao</a>
+    <a href="https://github.com/AutomacoesTEC/auditor-sped" target="_blank">GitHub</a>
+    <a href="https://github.com/AutomacoesTEC/auditor-sped" target="_blank" class="nav-cta">Ver Codigo</a>
+  </div>
+</nav>
+
+<!-- Hero -->
+<div class="hero">
+  <div class="hero-badge">
+    <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><circle cx="6" cy="6" r="5" stroke="currentColor" stroke-width="1.5"/><path d="M4 6l1.5 1.5L8 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    10 Regras de Auditoria Ativas
+  </div>
+  <h1>Identifique <span>creditos tributarios</span> nao aproveitados no Lucro Real</h1>
+  <p>Sistema Python que parseia arquivos ECD e ECF, cruza lancamentos contabeis com a legislacao fiscal e aponta creditos de IRPJ, CSLL, PIS e COFINS recuperaveis via PER/DCOMP.</p>
+  <div class="hero-actions">
+    <a href="https://github.com/AutomacoesTEC/auditor-sped" target="_blank" class="btn-hero-primary">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+      Acessar Repositorio
+    </a>
+    <a href="#instalacao" class="btn-hero-secondary">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+      Como Instalar
+    </a>
+  </div>
+</div>
+
+<!-- Stats -->
+<div class="stats">
+  <div class="stat">
+    <div class="stat-num">10</div>
+    <div class="stat-label">Regras de Auditoria</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num">22</div>
+    <div class="stat-label">Gatilhos Automaticos</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num">684K+</div>
+    <div class="stat-label">Registros em ~10s</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num">3</div>
+    <div class="stat-label">Formatos SPED</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num">R$40K+</div>
+    <div class="stat-label">Credito Real Detectado</div>
+  </div>
+</div>
+
+<!-- Regras -->
+<section id="regras" style="background:#fff;">
+  <div class="container">
+    <div class="section-tag">Motor de Auditoria</div>
+    <h2 class="section-title">10 Regras com Base Legal Verificada</h2>
+    <p class="section-desc">Cada regra cruza dados da ECD e ECF com a legislacao fiscal vigente. Nenhum achado sem fundamento normativo expresso.</p>
+
+    <div class="rules-grid">
+      <div class="rule-card">
+        <span class="rule-badge">R01</span>
+        <div class="rule-content">
+          <div class="rule-title">Saldo negativo IRPJ/CSLL e IRRF nao aproveitado</div>
+          <div class="rule-sub">IRPJ / CSLL</div>
+          <div class="rule-legal">Art. 6, Lei 9.430/96 | IN RFB 1.700/2017</div>
+        </div>
+      </div>
+      <div class="rule-card">
+        <span class="rule-badge">R02</span>
+        <div class="rule-content">
+          <div class="rule-title">IRRF retido em contas ECD nao aproveitado na ECF</div>
+          <div class="rule-sub">IRPJ</div>
+          <div class="rule-legal">Arts. 714-716 RIR/2018</div>
+        </div>
+      </div>
+      <div class="rule-card">
+        <span class="rule-badge">R03</span>
+        <div class="rule-content">
+          <div class="rule-title">CSRF retida na fonte nao deduzida da CSLL</div>
+          <div class="rule-sub">CSLL</div>
+          <div class="rule-legal">Lei 10.833/2003, arts. 30-36 | IN 459/2004</div>
+        </div>
+      </div>
+      <div class="rule-card">
+        <span class="rule-badge">R04</span>
+        <div class="rule-content">
+          <div class="rule-title">Estimativas mensais de IRPJ/CSLL pagas a maior</div>
+          <div class="rule-sub">IRPJ / CSLL</div>
+          <div class="rule-legal">Lei 9.430/96, arts. 2-6</div>
+        </div>
+      </div>
+      <div class="rule-card">
+        <span class="rule-badge">R05</span>
+        <div class="rule-content">
+          <div class="rule-title">Creditos de PIS/COFINS subutilizados</div>
+          <div class="rule-sub">PIS / COFINS</div>
+          <div class="rule-legal">Lei 10.637/2002 art. 3 | IN RFB 2.121/2022</div>
+        </div>
+      </div>
+      <div class="rule-card">
+        <span class="rule-badge">R06</span>
+        <div class="rule-content">
+          <div class="rule-title">Incentivo PAT nao deduzido do IRPJ</div>
+          <div class="rule-sub">IRPJ</div>
+          <div class="rule-legal">Lei 6.321/1976 | Decreto 10.854/2021</div>
+        </div>
+      </div>
+      <div class="rule-card">
+        <span class="rule-badge">R07</span>
+        <div class="rule-content">
+          <div class="rule-title">Depreciacao acelerada nao escriturada no LALUR</div>
+          <div class="rule-sub">IRPJ</div>
+          <div class="rule-legal">RIR/2018 arts. 323-326 | Lei 14.871/2024</div>
+        </div>
+      </div>
+      <div class="rule-card">
+        <span class="rule-badge">R08</span>
+        <div class="rule-content">
+          <div class="rule-title">Prejuizo fiscal nao compensado (limite 30%)</div>
+          <div class="rule-sub">IRPJ / CSLL</div>
+          <div class="rule-legal">RIR/2018 arts. 580-583 | Lei 9.065/1995</div>
+        </div>
+      </div>
+      <div class="rule-card">
+        <span class="rule-badge">R09</span>
+        <div class="rule-content">
+          <div class="rule-title">Subvencoes sem exclusao no LALUR</div>
+          <div class="rule-sub">IRPJ / CSLL</div>
+          <div class="rule-legal">Lei 12.973/2014 art. 30 | Lei 14.789/2023</div>
+        </div>
+      </div>
+      <div class="rule-card">
+        <span class="rule-badge">R10</span>
+        <div class="rule-content">
+          <div class="rule-title">Perdas em creditos/PDD sem deducao no LALUR</div>
+          <div class="rule-sub">IRPJ / CSLL</div>
+          <div class="rule-legal">Art. 9, Lei 9.430/96 | Arts. 347-354 RIR/2018</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Features -->
+<section style="background:var(--gray-50)">
+  <div class="container">
+    <div class="section-tag">Capacidades</div>
+    <h2 class="section-title">Tecnologia e Direito Tributario Integrados</h2>
+    <p class="section-desc">Engenharia de dados aplicada a auditoria fiscal. Precisao normativa em cada linha de codigo.</p>
+
+    <div class="features-grid">
+      <div class="feature">
+        <div class="feature-icon feature-icon-blue">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        </div>
+        <h3>Parser SPED Robusto</h3>
+        <p>Le arquivos ECD e ECF com encoding ISO-8859-1/UTF-8. Parseia I050, I051, I155, I200, I250, N620, N630, N670, M300, Y570 e mais. 684K registros em ~10s.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon feature-icon-green">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+        </div>
+        <h3>Rastreabilidade Total</h3>
+        <p>Cada achado aponta os registros SPED de origem: tipo de registro, linha do arquivo e valores. Auditavel pela Receita Federal.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon feature-icon-yellow">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        </div>
+        <h3>22 Gatilhos Automaticos</h3>
+        <p>12 de conta (GC01-GC12) e 10 de historico (GH01-GH10). Detectam padroes suspeitos em nomes de conta e descricoes de lancamentos.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon feature-icon-red">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <h3>Seguranca e Integridade</h3>
+        <p>Protecao contra path traversal, validacao de entrada, sessoes isoladas por UUID, encoding com fallback gracioso. Zero crash em arquivo malformado.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon feature-icon-purple">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        </div>
+        <h3>Relatorios Profissionais</h3>
+        <p>Gera Excel com 5 abas (por regra, por tributo, gatilhos) e Parecer Tecnico PDF com 7 secoes. Para entrega direta ao cliente.</p>
+      </div>
+      <div class="feature">
+        <div class="feature-icon feature-icon-cyan">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0284C7" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20"/></svg>
+        </div>
+        <h3>Interface Web Flask</h3>
+        <p>Upload via browser, execucao em um clique, download dos relatorios. Roda localmente na rede interna do escritorio.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Arquitetura -->
+<section id="arquitetura" style="background:#fff">
+  <div class="container">
+    <div class="section-tag">Estrutura</div>
+    <h2 class="section-title">Arquitetura Modular e Extensivel</h2>
+    <p class="section-desc">Separacao estrita entre parsing, regras de auditoria, gatilhos e relatorios. Cada modulo e independente e testavel.</p>
+
+    <div class="arch-box">
+<span class="arch-dir">auditor-sped/</span><br>
+<span class="arch-file">  main.py</span>                       <span class="arch-note"># Orquestrador: parsing → regras → gatilhos → relatorios</span><br>
+<span class="arch-file">  config.py</span>                     <span class="arch-note"># Constantes, mapeamento de campos, linhas-chave ECF</span><br>
+<span class="arch-file">  requirements.txt</span>              <span class="arch-note"># openpyxl, reportlab, flask</span><br>
+<br>
+<span class="arch-dir">  src/</span><br>
+<span class="arch-dir">    parsers/</span><br>
+<span class="arch-file">      sped_parser.py</span>            <span class="arch-note"># Parser generico: encoding, split por |</span><br>
+<span class="arch-file">      ecd_parser.py</span>             <span class="arch-note"># ECD: I050, I051, I155, I200, I250</span><br>
+<span class="arch-file">      ecf_parser.py</span>             <span class="arch-note"># ECF: N620, N630, N670, M300, Y570, Y580</span><br>
+<br>
+<span class="arch-dir">    regras/</span><br>
+<span class="arch-file">      base_regra.py</span>             <span class="arch-note"># Interface abstrata RegraAuditoria + dataclass Achado</span><br>
+<span class="arch-file">      r01_saldo_negativo.py</span>     <span class="arch-note"># Saldo neg. IRPJ/CSLL + IRRF nao utilizado</span><br>
+<span class="arch-comment">      # r02 ... r10              # 9 regras adicionais implementadas</span><br>
+<br>
+<span class="arch-dir">    gatilhos/</span><br>
+<span class="arch-file">      motor_gatilhos.py</span>         <span class="arch-note"># 12 gatilhos de conta (GC) + 10 de historico (GH)</span><br>
+<br>
+<span class="arch-dir">    relatorios/</span><br>
+<span class="arch-file">      gerador_xlsx.py</span>           <span class="arch-note"># Excel: Capa, Resumo, por regra, gatilhos</span><br>
+<span class="arch-file">      gerador_pdf.py</span>            <span class="arch-note"># Parecer tecnico PDF com 7 secoes</span><br>
+<br>
+<span class="arch-dir">  web/</span><br>
+<span class="arch-file">    app.py</span>                       <span class="arch-note"># Flask: upload, execucao, download</span><br>
+<span class="arch-file">    templates/</span>                   <span class="arch-note"># base.html, index.html, resultado.html</span>
+    </div>
+  </div>
+</section>
+
+<!-- Instalacao -->
+<section id="instalacao" style="background:var(--gray-50)">
+  <div class="container">
+    <div class="section-tag">Instalacao</div>
+    <h2 class="section-title">Rodando em 3 passos</h2>
+    <p class="section-desc">Python 3.11+ e dois pacotes. Sem banco de dados, sem Docker, sem infraestrutura complexa.</p>
+
+    <div class="install-steps">
+      <div class="install-step">
+        <div class="step-num">1</div>
+        <div class="step-title">Clonar e instalar</div>
+        <div class="step-desc">Clone o repositorio e instale as dependencias.</div>
+        <div class="code-block">
+git clone https://github.com/<br>
+AutomacoesTEC/auditor-sped<br>
+cd auditor-sped<br>
+pip install -r requirements.txt
+        </div>
+      </div>
+      <div class="install-step">
+        <div class="step-num">2</div>
+        <div class="step-title">Interface Web</div>
+        <div class="step-desc">Inicie o servidor e acesse pelo browser.</div>
+        <div class="code-block">
+python web/app.py<br>
+<br>
+# Acesse:<br>
+# http://localhost:5000
+        </div>
+      </div>
+      <div class="install-step">
+        <div class="step-num">3</div>
+        <div class="step-title">Linha de Comando</div>
+        <div class="step-desc">Ou execute direto pelo terminal com flags.</div>
+        <div class="code-block">
+python main.py \<br>
+  --ecd ecd.txt \<br>
+  --ecf ecf.txt \<br>
+  --xlsx --pdf \<br>
+  --saida resultado/
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Base Legal -->
+<section style="background:#fff">
+  <div class="container">
+    <div class="section-tag">Fundamento Normativo</div>
+    <h2 class="section-title">Base Legal de Cada Regra</h2>
+    <p class="section-desc">Nenhuma regra sem fundamento normativo verificavel. A confiabilidade do achado e declarada explicitamente.</p>
+
+    <table class="legal-table">
+      <thead>
+        <tr>
+          <th>Regra</th>
+          <th>Tributo</th>
+          <th>Base Legal Principal</th>
+          <th>Confianca</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="legal-mono">R01</span></td>
+          <td>IRPJ / CSLL</td>
+          <td>Art. 6, Lei 9.430/96 | arts. 228-229, IN RFB 1.700/2017</td>
+          <td><span style="color:var(--danger);font-weight:700;font-size:.78rem">Alta</span></td>
+        </tr>
+        <tr>
+          <td><span class="legal-mono">R02</span></td>
+          <td>IRPJ</td>
+          <td>Arts. 714-716 RIR/2018 | art. 36, IN RFB 1.700/2017</td>
+          <td><span style="color:var(--danger);font-weight:700;font-size:.78rem">Alta</span></td>
+        </tr>
+        <tr>
+          <td><span class="legal-mono">R03</span></td>
+          <td>CSLL</td>
+          <td>Lei 10.833/2003, arts. 30-36 | IN RFB 459/2004</td>
+          <td><span style="color:var(--danger);font-weight:700;font-size:.78rem">Alta</span></td>
+        </tr>
+        <tr>
+          <td><span class="legal-mono">R04</span></td>
+          <td>IRPJ / CSLL</td>
+          <td>Lei 9.430/1996, arts. 2-6 | IN RFB 1.700/2017 art. 5</td>
+          <td><span style="color:var(--danger);font-weight:700;font-size:.78rem">Alta</span></td>
+        </tr>
+        <tr>
+          <td><span class="legal-mono">R05</span></td>
+          <td>PIS / COFINS</td>
+          <td>Lei 10.637/2002 art. 3 | IN RFB 2.121/2022 | REsp 1.221.170/PR</td>
+          <td><span style="color:var(--danger);font-weight:700;font-size:.78rem">Alta</span></td>
+        </tr>
+        <tr>
+          <td><span class="legal-mono">R06</span></td>
+          <td>IRPJ</td>
+          <td>Lei 6.321/1976 | Decreto 10.854/2021 | art. 14, Lei 9.249/1995</td>
+          <td><span style="color:var(--warning);font-weight:700;font-size:.78rem">Media</span></td>
+        </tr>
+        <tr>
+          <td><span class="legal-mono">R07</span></td>
+          <td>IRPJ</td>
+          <td>RIR/2018 arts. 323-326 | IN RFB 1.700/2017 art. 170 | Lei 14.871/2024</td>
+          <td><span style="color:var(--gray-400);font-weight:700;font-size:.78rem">Baixa</span></td>
+        </tr>
+        <tr>
+          <td><span class="legal-mono">R08</span></td>
+          <td>IRPJ / CSLL</td>
+          <td>RIR/2018 arts. 580-583 | art. 15, Lei 9.065/1995</td>
+          <td><span style="color:var(--danger);font-weight:700;font-size:.78rem">Alta</span></td>
+        </tr>
+        <tr>
+          <td><span class="legal-mono">R09</span></td>
+          <td>IRPJ / CSLL</td>
+          <td>Art. 30, Lei 12.973/2014 | Lei 14.789/2023 | IN RFB 2.170/2024</td>
+          <td><span style="color:var(--gray-400);font-weight:700;font-size:.78rem">Baixa</span></td>
+        </tr>
+        <tr>
+          <td><span class="legal-mono">R10</span></td>
+          <td>IRPJ / CSLL</td>
+          <td>Art. 9, Lei 9.430/1996 | Arts. 347-354 RIR/2018</td>
+          <td><span style="color:var(--warning);font-weight:700;font-size:.78rem">Media</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- CTA -->
+<div class="cta-section">
+  <h2>Pronto para identificar creditos?</h2>
+  <p>Acesse o repositorio, clone e execute em minutos.</p>
+  <a href="https://github.com/AutomacoesTEC/auditor-sped" target="_blank" class="btn-hero-primary">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+    AutomacoesTEC / auditor-sped
+  </a>
+</div>
+
+<!-- Footer -->
+<footer>
+  <p>Auditor SPED &mdash; <a href="https://github.com/AutomacoesTEC/auditor-sped" target="_blank">github.com/AutomacoesTEC/auditor-sped</a> &mdash; Dados fiscais confidenciais. Uso exclusivo de consultoria tributaria.</p>
+</footer>
+
+</body>
+</html>
